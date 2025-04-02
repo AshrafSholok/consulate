@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Submission Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .name-field {
+            text-transform: capitalize;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .success-message {
+            display: none;
+            color: green;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+        }
+        .error-message {
+            display: none;
+            color: red;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+        }
+        .document-name {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Document Submission Form</h1>
+        <div class="form-group">
+            <label for="documentType">Document Type:</label>
+            <select id="documentType" onchange="showFields()">
+                <option value="">Select a document type</option>
+            </select>
+        </div>
+        <div id="dynamicFields"></div>
+        <button onclick="submitForm()">Submit</button>
+        <div id="successMessage" class="success-message">
+            Form submitted successfully!<br>
+            <span class="document-name" id="documentName"></span>
+        </div>
+        <div id="errorMessage" class="error-message">Error submitting form. Please try again.</div>
+    </div>
+
+    <script>
+        // Initialize PoA types from server
+        const poaTypes = {{ poa_types|tojson|safe }};
+        
+        // Populate document type dropdown
+        document.addEventListener('DOMContentLoaded', function() {
+            const select = document.getElementById('documentType');
+            Object.keys(poaTypes).forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                select.appendChild(option);
+            });
+        });
+
+        function showFields() {
+            const documentType = document.getElementById('documentType').value;
+            const dynamicFields = document.getElementById('dynamicFields');
+            dynamicFields.innerHTML = '';
+            
+            if (!documentType) return;
+            
+            const fields = poaTypes[documentType].fields;
+            fields.forEach(field => {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.htmlFor = field.name;
+                label.textContent = field.label;
+                
+                let input;
+                if (field.type === 'date') {
+                    input = document.createElement('input');
+                    input.type = 'date';
+                } else if (field.type === 'number') {
+                    input = document.createElement('input');
+                    input.type = 'number';
+                } else {
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    if (field.name.toLowerCase().includes('name')) {
+                        input.className = 'name-field';
+                        input.addEventListener('input', function(e) {
+                            this.value = this.value.split(' ')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                .join(' ');
+                        });
+                    }
+                }
+                
+                input.id = field.name;
+                input.name = field.name;
+                input.required = true;
+                
+                formGroup.appendChild(label);
+                formGroup.appendChild(input);
+                dynamicFields.appendChild(formGroup);
+            });
+        }
+        
+        function submitForm() {
+            const formData = new FormData();
+            const documentType = document.getElementById('documentType').value;
+            formData.append('documentType', documentType);
+            
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                formData.append(input.name, input.value);
+            });
+            
+            fetch('/submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'none';
+                    document.getElementById('documentName').textContent = `Document saved as: ${data.filename}`;
+                    document.getElementById('documentType').value = '';
+                    document.getElementById('dynamicFields').innerHTML = '';
+                } else {
+                    throw new Error(data.message || 'Submission failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('successMessage').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+            });
+        }
+    </script>
+</body>
+</html> 
