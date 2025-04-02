@@ -15,9 +15,6 @@ import win32api
 from datetime import datetime
 import os
 import io
-import socket
-import subprocess
-import sys
 
 class PoAApplication:
     def __init__(self, root):
@@ -30,30 +27,7 @@ class PoAApplication:
             self.poa_types = json.load(f)
         
         self.current_frame = None
-        self.server_process = None
         self.setup_main_menu()
-        
-    def get_local_ip(self):
-        try:
-            # Get local IP address
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()[0]
-            s.close()
-            return ip
-        except:
-            return "localhost"
-        
-    def start_server(self):
-        # Start the simple server in a separate process
-        python_path = sys.executable
-        server_script = os.path.join(os.path.dirname(__file__), 'simple_server.py')
-        self.server_process = subprocess.Popen([python_path, server_script])
-        
-    def stop_server(self):
-        if self.server_process:
-            self.server_process.terminate()
-            self.server_process = None
         
     def setup_main_menu(self):
         # Clear any existing widgets
@@ -63,35 +37,21 @@ class PoAApplication:
         self.current_frame = ttk.Frame(self.root, padding="20")
         self.current_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
-        # Start Server button
-        ttk.Button(self.current_frame, text="Start Server", 
-                  command=self.start_server).grid(row=0, column=0, pady=10)
-        
         # Generate QR Code button
         ttk.Button(self.current_frame, text="Generate QR Code", 
-                  command=self.generate_qr_code).grid(row=1, column=0, pady=10)
-        
-        # Stop Server button
-        ttk.Button(self.current_frame, text="Stop Server", 
-                  command=self.stop_server).grid(row=2, column=0, pady=10)
+                  command=self.generate_qr_code).grid(row=0, column=0, pady=10)
         
         # PoA type selection
-        ttk.Label(self.current_frame, text="Select Document Type:").grid(row=3, column=0, pady=10)
+        ttk.Label(self.current_frame, text="Select Document Type:").grid(row=1, column=0, pady=10)
         self.poa_var = tk.StringVar()
         poa_combo = ttk.Combobox(self.current_frame, textvariable=self.poa_var)
         poa_combo['values'] = list(self.poa_types.keys())
-        poa_combo.grid(row=4, column=0, pady=5)
+        poa_combo.grid(row=2, column=0, pady=5)
         poa_combo.bind('<<ComboboxSelected>>', self.show_form)
         
     def generate_qr_code(self):
-        if not self.server_process:
-            messagebox.showerror("Error", "Please start the server first!")
-            return
-            
-        # Get local IP address
-        ip = self.get_local_ip()
-        # Create URL for the web form
-        url = f"http://{ip}:8000"
+        # Use the GitHub Pages URL
+        url = "https://ashrafsholok.github.io/consulate/"
         
         # Create QR code instance
         qr = qrcode.QRCode(
@@ -236,10 +196,6 @@ class PoAApplication:
         
         # Clean up
         self.setup_main_menu()
-
-    def __del__(self):
-        # Clean up server process when application closes
-        self.stop_server()
 
 if __name__ == "__main__":
     root = tk.Tk()
