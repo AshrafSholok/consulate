@@ -1,37 +1,41 @@
 {
-    "General Power of Attorney": {
-        "fields": [
-            {"name": "grantor_name", "label": "Grantor's Full Name", "type": "text"},
-            {"name": "grantor_id", "label": "Grantor's ID Number", "type": "text"},
-            {"name": "grantor_address", "label": "Grantor's Address", "type": "text"},
-            {"name": "attorney_name", "label": "Attorney's Full Name", "type": "text"},
-            {"name": "attorney_id", "label": "Attorney's ID Number", "type": "text"},
-            {"name": "attorney_address", "label": "Attorney's Address", "type": "text"},
-            {"name": "purpose", "label": "Purpose of Power of Attorney", "type": "text"},
-            {"name": "validity_period", "label": "Validity Period (in months)", "type": "number"}
-        ]
-    },
-    "Special Power of Attorney": {
-        "fields": [
-            {"name": "grantor_name", "label": "Grantor's Full Name", "type": "text"},
-            {"name": "grantor_id", "label": "Grantor's ID Number", "type": "text"},
-            {"name": "grantor_address", "label": "Grantor's Address", "type": "text"},
-            {"name": "attorney_name", "label": "Attorney's Full Name", "type": "text"},
-            {"name": "attorney_id", "label": "Attorney's ID Number", "type": "text"},
-            {"name": "attorney_address", "label": "Attorney's Address", "type": "text"},
-            {"name": "specific_purpose", "label": "Specific Purpose", "type": "text"},
-            {"name": "validity_period", "label": "Validity Period (in months)", "type": "number"}
-        ]
-    },
     "Visa Application": {
         "fields": [
-            {"name": "applicant_name", "label": "Applicant's Full Name", "type": "text"},
-            {"name": "passport_number", "label": "Passport Number", "type": "text"},
-            {"name": "nationality", "label": "Nationality", "type": "text"},
-            {"name": "date_of_birth", "label": "Date of Birth", "type": "date"},
-            {"name": "purpose_of_visit", "label": "Purpose of Visit", "type": "text"},
-            {"name": "intended_duration", "label": "Intended Duration of Stay (days)", "type": "number"},
-            {"name": "accommodation_details", "label": "Accommodation Details", "type": "text"}
+            {
+                "name": "applicant_name",
+                "label": "Applicant's Full Name",
+                "type": "text"
+            },
+            {
+                "name": "passport_number",
+                "label": "Passport Number",
+                "type": "text"
+            },
+            {
+                "name": "nationality",
+                "label": "Nationality",
+                "type": "text"
+            },
+            {
+                "name": "date_of_birth",
+                "label": "Date of Birth",
+                "type": "date"
+            },
+            {
+                "name": "purpose_of_visit",
+                "label": "Purpose of Visit",
+                "type": "text"
+            },
+            {
+                "name": "intended_duration",
+                "label": "Intended Duration of Stay (days)",
+                "type": "number"
+            },
+            {
+                "name": "accommodation_details",
+                "label": "Accommodation Details",
+                "type": "text"
+            }
         ]
     }
 } 

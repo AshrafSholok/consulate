@@ -16,15 +16,15 @@ from datetime import datetime
 import os
 import io
 
-class PoAApplication:
+class VisaApplication:
     def __init__(self, root):
         self.root = root
-        self.root.title("Government Office - PoA & Visa Services")
+        self.root.title("Visa Application System")
         self.root.geometry("800x600")
         
-        # Load PoA types from JSON
+        # Load visa application fields from JSON
         with open('poa_types.json', 'r') as f:
-            self.poa_types = json.load(f)
+            self.visa_fields = json.load(f)["Visa Application"]["fields"]
         
         self.current_frame = None
         self.setup_main_menu()
@@ -37,17 +37,18 @@ class PoAApplication:
         self.current_frame = ttk.Frame(self.root, padding="20")
         self.current_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
+        # Title
+        title_label = ttk.Label(self.current_frame, text="Visa Application System", 
+                              font=('Helvetica', 16, 'bold'))
+        title_label.grid(row=0, column=0, columnspan=2, pady=20)
+        
         # Generate QR Code button
         ttk.Button(self.current_frame, text="Generate QR Code", 
-                  command=self.generate_qr_code).grid(row=0, column=0, pady=10)
+                  command=self.generate_qr_code).grid(row=1, column=0, columnspan=2, pady=10)
         
-        # PoA type selection
-        ttk.Label(self.current_frame, text="Select Document Type:").grid(row=1, column=0, pady=10)
-        self.poa_var = tk.StringVar()
-        poa_combo = ttk.Combobox(self.current_frame, textvariable=self.poa_var)
-        poa_combo['values'] = list(self.poa_types.keys())
-        poa_combo.grid(row=2, column=0, pady=5)
-        poa_combo.bind('<<ComboboxSelected>>', self.show_form)
+        # Create Visa Application button
+        ttk.Button(self.current_frame, text="Create Visa Application", 
+                  command=self.show_form).grid(row=2, column=0, columnspan=2, pady=10)
         
     def generate_qr_code(self):
         # Use the GitHub Pages URL
@@ -92,49 +93,50 @@ class PoAApplication:
         # Show the URL
         ttk.Label(qr_window, text=f"URL: {url}", wraplength=300).pack(pady=5)
         
-    def show_form(self, event=None):
-        selected_type = self.poa_var.get()
-        if not selected_type:
-            return
-            
+    def show_form(self):
         # Clear current frame
         self.current_frame.destroy()
         self.current_frame = ttk.Frame(self.root, padding="20")
         self.current_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
+        # Title
+        title_label = ttk.Label(self.current_frame, text="Visa Application Form", 
+                              font=('Helvetica', 16, 'bold'))
+        title_label.grid(row=0, column=0, columnspan=2, pady=20)
+        
         # Create form fields
         self.form_data = {}
-        fields = self.poa_types[selected_type]['fields']
-        
-        for i, field in enumerate(fields):
-            ttk.Label(self.current_frame, text=field['label']).grid(row=i, column=0, pady=5)
+        for i, field in enumerate(self.visa_fields):
+            ttk.Label(self.current_frame, text=field['label']).grid(row=i+1, column=0, pady=5, padx=5)
             if field['type'] == 'text':
                 entry = ttk.Entry(self.current_frame, width=40)
-                entry.grid(row=i, column=1, pady=5)
+                entry.grid(row=i+1, column=1, pady=5, padx=5)
                 self.form_data[field['name']] = entry
             elif field['type'] == 'number':
                 entry = ttk.Entry(self.current_frame, width=40)
-                entry.grid(row=i, column=1, pady=5)
+                entry.grid(row=i+1, column=1, pady=5, padx=5)
                 self.form_data[field['name']] = entry
             elif field['type'] == 'date':
                 entry = ttk.Entry(self.current_frame, width=40)
-                entry.grid(row=i, column=1, pady=5)
+                entry.grid(row=i+1, column=1, pady=5, padx=5)
                 self.form_data[field['name']] = entry
         
         # Submit button
         ttk.Button(self.current_frame, text="Generate Document", 
-                  command=self.generate_document).grid(row=len(fields), column=0, columnspan=2, pady=20)
+                  command=self.generate_document).grid(row=len(self.visa_fields)+1, 
+                                                     column=0, columnspan=2, pady=20)
         
         # Back button
         ttk.Button(self.current_frame, text="Back to Main Menu", 
-                  command=self.setup_main_menu).grid(row=len(fields)+1, column=0, columnspan=2, pady=5)
+                  command=self.setup_main_menu).grid(row=len(self.visa_fields)+2, 
+                                                   column=0, columnspan=2, pady=5)
         
     def generate_document(self):
         # Collect form data
         data = {name: entry.get() for name, entry in self.form_data.items()}
         
         # Create PDF
-        filename = f"document_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        filename = f"visa_application_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         doc = SimpleDocTemplate(filename, pagesize=letter)
         styles = getSampleStyleSheet()
         
@@ -166,17 +168,12 @@ class PoAApplication:
             textColor=colors.HexColor('#34495e')
         )
         
-        # Add header with logo (you can add your logo file)
-        content.append(Paragraph("Government Office", title_style))
-        content.append(Paragraph("Power of Attorney & Visa Services", header_style))
-        content.append(Spacer(1, 20))
-        
-        # Add document type
-        content.append(Paragraph(self.poa_var.get(), header_style))
+        # Add header
+        content.append(Paragraph("Visa Application Form", title_style))
         content.append(Spacer(1, 20))
         
         # Add form data in a structured format
-        for field in self.poa_types[self.poa_var.get()]['fields']:
+        for field in self.visa_fields:
             content.append(Paragraph(f"<b>{field['label']}:</b> {data[field['name']]}", field_style))
             content.append(Spacer(1, 8))
         
@@ -190,7 +187,7 @@ class PoAApplication:
         # Print the document
         try:
             win32api.ShellExecute(0, "print", filename, None, ".", 0)
-            messagebox.showinfo("Success", "Document generated and sent to printer!")
+            messagebox.showinfo("Success", "Visa application form generated and sent to printer!")
         except Exception as e:
             messagebox.showerror("Error", f"Error printing document: {str(e)}")
         
@@ -199,5 +196,5 @@ class PoAApplication:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = PoAApplication(root)
+    app = VisaApplication(root)
     root.mainloop() 

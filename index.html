@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Submission Form</title>
+    <title>Visa Application Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,175 +14,194 @@
         }
         .form-container {
             background-color: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        .form-header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #2c3e50;
+        }
+        .form-header p {
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
+            color: #34495e;
         }
         input[type="text"],
         input[type="date"],
         input[type="number"],
-        select {
+        textarea {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
         }
         .name-field {
             text-transform: capitalize;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #3498db;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #2980b9;
         }
         .success-message {
             display: none;
-            color: green;
-            margin-top: 10px;
-            padding: 10px;
+            color: #27ae60;
+            margin-top: 20px;
+            padding: 15px;
             background-color: #e8f5e9;
             border-radius: 4px;
+            text-align: center;
         }
         .error-message {
             display: none;
-            color: red;
-            margin-top: 10px;
-            padding: 10px;
+            color: #c0392b;
+            margin-top: 20px;
+            padding: 15px;
             background-color: #ffebee;
             border-radius: 4px;
+            text-align: center;
         }
         .document-name {
             font-weight: bold;
-            margin-top: 5px;
+            margin-top: 10px;
+            color: #2c3e50;
+        }
+        .required {
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+        .form-footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <h1>Document Submission Form</h1>
-        <div class="form-group">
-            <label for="documentType">Document Type:</label>
-            <select id="documentType" onchange="showFields()">
-                <option value="">Select a document type</option>
-            </select>
+        <div class="form-header">
+            <h1>Visa Application Form</h1>
+            <p>Please fill out all required fields to submit your visa application</p>
         </div>
-        <div id="dynamicFields"></div>
-        <button onclick="submitForm()">Submit</button>
+
+        <form id="visaForm" onsubmit="submitForm(event)">
+            <div class="form-group">
+                <label for="applicant_name">Applicant's Full Name <span class="required">*</span></label>
+                <input type="text" id="applicant_name" name="applicant_name" class="name-field" required>
+            </div>
+
+            <div class="form-group">
+                <label for="passport_number">Passport Number <span class="required">*</span></label>
+                <input type="text" id="passport_number" name="passport_number" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nationality">Nationality <span class="required">*</span></label>
+                <input type="text" id="nationality" name="nationality" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth <span class="required">*</span></label>
+                <input type="date" id="date_of_birth" name="date_of_birth" required>
+            </div>
+
+            <div class="form-group">
+                <label for="purpose_of_visit">Purpose of Visit <span class="required">*</span></label>
+                <input type="text" id="purpose_of_visit" name="purpose_of_visit" required>
+            </div>
+
+            <div class="form-group">
+                <label for="intended_duration">Intended Duration of Stay (days) <span class="required">*</span></label>
+                <input type="number" id="intended_duration" name="intended_duration" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="accommodation_details">Accommodation Details <span class="required">*</span></label>
+                <textarea id="accommodation_details" name="accommodation_details" rows="3" required></textarea>
+            </div>
+
+            <button type="submit">Submit Application</button>
+        </form>
+
         <div id="successMessage" class="success-message">
-            Form submitted successfully!<br>
+            Application submitted successfully!<br>
             <span class="document-name" id="documentName"></span>
         </div>
-        <div id="errorMessage" class="error-message">Error submitting form. Please try again.</div>
+        <div id="errorMessage" class="error-message">Error submitting application. Please try again.</div>
+
+        <div class="form-footer">
+            <p>* Required fields</p>
+            <p>Please ensure all information provided is accurate and complete.</p>
+        </div>
     </div>
 
     <script>
-        // Initialize PoA types from server
-        const poaTypes = {{ poa_types|tojson|safe }};
-        
-        // Populate document type dropdown
         document.addEventListener('DOMContentLoaded', function() {
-            const select = document.getElementById('documentType');
-            Object.keys(poaTypes).forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                select.appendChild(option);
+            // Add name field auto-capitalization
+            const nameField = document.getElementById('applicant_name');
+            nameField.addEventListener('input', function(e) {
+                this.value = this.value.split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ');
+            });
+
+            // Add passport number validation
+            const passportField = document.getElementById('passport_number');
+            passportField.addEventListener('input', function(e) {
+                this.value = this.value.toUpperCase();
             });
         });
 
-        function showFields() {
-            const documentType = document.getElementById('documentType').value;
-            const dynamicFields = document.getElementById('dynamicFields');
-            dynamicFields.innerHTML = '';
+        function submitForm(event) {
+            event.preventDefault();
             
-            if (!documentType) return;
+            const formData = new FormData(event.target);
             
-            const fields = poaTypes[documentType].fields;
-            fields.forEach(field => {
-                const formGroup = document.createElement('div');
-                formGroup.className = 'form-group';
-                
-                const label = document.createElement('label');
-                label.htmlFor = field.name;
-                label.textContent = field.label;
-                
-                let input;
-                if (field.type === 'date') {
-                    input = document.createElement('input');
-                    input.type = 'date';
-                } else if (field.type === 'number') {
-                    input = document.createElement('input');
-                    input.type = 'number';
-                } else {
-                    input = document.createElement('input');
-                    input.type = 'text';
-                    if (field.name.toLowerCase().includes('name')) {
-                        input.className = 'name-field';
-                        input.addEventListener('input', function(e) {
-                            this.value = this.value.split(' ')
-                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                                .join(' ');
-                        });
-                    }
-                }
-                
-                input.id = field.name;
-                input.name = field.name;
-                input.required = true;
-                
-                formGroup.appendChild(label);
-                formGroup.appendChild(input);
-                dynamicFields.appendChild(formGroup);
-            });
-        }
-        
-        function submitForm() {
-            const formData = new FormData();
-            const documentType = document.getElementById('documentType').value;
-            formData.append('documentType', documentType);
+            // Add submission timestamp
+            formData.append('submission_date', new Date().toISOString());
             
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                formData.append(input.name, input.value);
-            });
-            
-            fetch('/submit', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    document.getElementById('successMessage').style.display = 'block';
-                    document.getElementById('errorMessage').style.display = 'none';
-                    document.getElementById('documentName').textContent = `Document saved as: ${data.filename}`;
-                    document.getElementById('documentType').value = '';
-                    document.getElementById('dynamicFields').innerHTML = '';
-                } else {
-                    throw new Error(data.message || 'Submission failed');
-                }
-            })
-            .catch(error => {
-                document.getElementById('successMessage').style.display = 'none';
-                document.getElementById('errorMessage').style.display = 'block';
-                document.getElementById('errorMessage').textContent = error.message;
-            });
+            // Simulate form submission (since we're using GitHub Pages)
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('documentName').textContent = 
+                    `Application submitted on: ${new Date().toLocaleString()}`;
+                event.target.reset();
+            }, 1000);
         }
     </script>
 </body>
